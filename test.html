@@ -1,0 +1,490 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/StringOperations.css">
+    <title>Document</title>
+</head>
+<body>
+    <p>The <code>String</code> class comes with many helper methods that help us process our textual data:</p>
+<ul>
+<li><a href="#determinestringlength">Determine String Length</a></li>
+<li><a href="#findingcharactersandsubstrings">Finding Characters and Substrings</a></li>
+<li><a href="#comparingstrings">Comparing Strings</a></li>
+<li><a href="#extractingsubstrings">Extracting Substrings</a></li>
+<li><a href="#changingstringcase">Changing String Case</a></li>
+<li><a href="#removingwhitespace">Removing Whitespace</a></li>
+<li><a href="#formattingstrings">Formatting Strings</a></li>
+<li><a href="#regexandcheckingforsubstrings">Regex and Checking for Substrings</a></li>
+<li><a href="#replacingcharactersandsubstrings">Replacing Characters and Substrings</a></li>
+<li><a href="#splittingandjoiningstrings">Splitting and Joining Strings</a></li>
+<li><a href="#creatingcharacterarrays">Creating Character Arrays</a></li>
+<li><a href="#stringequality">String Equality</a></li>
+</ul>
+<h3 id="stringconcatenation">String Concatenation</h3>
+<p>Before we begin using any of these methods on strings, we should take a look at String concatenation as it's a fairly common thing to do. Let's start with the <code>+</code> operator. The <code>String</code> class overloads that operator and it is used to concatenate two strings:</p>
+<pre><code class="hljs">String aplusb = <span class="hljs-string">"a"</span> + <span class="hljs-string">"b"</span>;
+
+<span class="hljs-comment">// The operands can be String object reference variables as well</span>
+String a = <span class="hljs-string">"a"</span>;
+String b = <span class="hljs-string">"b"</span>;
+aplusb = a + b;
+</code></pre>
+<p>The <code>+</code> operator is very slow. <code>String</code> objects are immutable, so every time we wish to concatenate <em>n</em> strings Java has to copy the characters from all strings into a new <code>String</code> object. This gives us quadratic <em>(O(n^2))</em> complexity.</p>
+<p>This isn't a problem with small strings, or when we're concatenating just several strings at the same time (<code>String abcd = "a" + "b" + "c" + "d";</code>). Java automatically uses <code>StringBuilder</code> for concatenating several strings at once, so the source of the performance loss is concatenating in loops. Usually, for something like that, we'd use the aforementioned <code>StringBuilder</code> class.</p>
+<p>It works like a <em>mutable</em> <code>String</code> object. It bypasses all the copying in string concatenation and gives us linear <em>(O(n))</em> complexity.</p>
+<pre><code class="hljs"><span class="hljs-keyword">int</span> n = <span class="hljs-number">1000</span>;
+
+<span class="hljs-comment">// Not a good idea! Gives the right result, but performs poorly.</span>
+String result = <span class="hljs-string">""</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) {
+result += Integer.valueOf(i);
+}
+
+<span class="hljs-comment">// Better, performance-friendly version.</span>
+StringBuilder sb = <span class="hljs-keyword">new</span> StringBuilder(<span class="hljs-string">""</span>);
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) {
+sb.append(i);
+}
+</code></pre>
+<p>We can also concatenate using the <code>concat()</code> method:</p>
+<pre><code class="hljs">String str1 = <span class="hljs-string">"Hello"</span>;
+System.out.println(str1.concat(<span class="hljs-string">"World"</span>));
+</code></pre>
+<p>Output:</p>
+<pre><code class="hljs">Hello World
+</code></pre>
+<div id="ad-content-1"><div class=" my-4 flex justify-center" style="min-height:250px"><div id="waldo-tag-10946"></div></div></div><p><strong>Note</strong>: When using String concatenation with other data types, they implicitly get converted to their string representation:</p>
+<pre><code class="hljs">System.out.println(<span class="hljs-string">"2 = "</span> + <span class="hljs-number">2</span>); 
+</code></pre>
+<p>This gives the expected output "2 = 2".</p>
+<pre><code class="hljs">System.out.println(<span class="hljs-string">"2 = "</span> + <span class="hljs-number">1</span> + <span class="hljs-number">1</span>);
+</code></pre>
+<p>In regular circumstances, <code>1+1</code> would be evaluated first as Java deals with operations from right to left. However, this time, it won't - the output is "2 = 11". This is because of something called "operator precedence".</p>
+<p>Essentially when two or more "+" operators are encountered (with no other operators present, nor parentheses) Java will start with the leftmost "+" operator and continue from there. If we wanted the output to be "2 = 2" again, we'd need to add parentheses in the appropriate place.</p>
+<pre><code class="hljs">System.out.println(<span class="hljs-string">"2 = "</span> + (<span class="hljs-number">1</span> + <span class="hljs-number">1</span>));
+</code></pre>
+<p>On the other hand, if we try to use the <code>concat()</code> method with a different data type:</p>
+<pre><code class="hljs">String str1 = <span class="hljs-string">"Hello"</span>;
+System.out.println(str1.concat(<span class="hljs-number">53</span>));
+</code></pre>
+<p>We'd be greeted with an exception:</p>
+<pre><code class="hljs">incompatible types: int cannot be converted to String
+</code></pre>
+<p>When using the <code>+</code> operand, Java automatically converts the data type into a String, whereas when using the method <code>concat()</code>, it doesn't.</p>
+<p>By the way, with all of the methods we'll explore in this article, we don't need to provide a reference variable, sometimes for brevity it's easier to simply use them on a literal:</p>
+<pre><code class="hljs"><span class="hljs-comment">// Instead of this...</span>
+String ourString = <span class="hljs-string">"this is just some string"</span>;
+System.out.println(ourString.substring(<span class="hljs-number">5</span>,<span class="hljs-number">10</span>));
+
+<span class="hljs-comment">// ...we can do this:</span>
+System.out.println(<span class="hljs-string">"this is just some string"</span>.substring(<span class="hljs-number">5</span>,<span class="hljs-number">10</span>));
+</code></pre>
+<p>Really, either way is fine, but the second way yields less code.</p>
+<h3 id="determinestringlength">Determine String Length</h3>
+<p><code>length()</code> returns the total number of characters in our <code>String</code>.</p>
+<p><code>isEmpty()</code> returns <code>true</code> or <code>false</code> depending on whether our <code>String</code> is empty or not.  So this means that <code>isEmpty()</code> returns <code>true</code> for the same case that <code>length()</code> returns 0.</p>
+<p>For example:</p>
+<pre><code class="hljs"><span class="hljs-keyword">if</span> (s.length() == <span class="hljs-number">0</span>) <span class="hljs-comment">// or s.isEmpty() {</span>
+System.out.println(<span class="hljs-string">"s is empty"</span>);
+}
+<span class="hljs-keyword">else</span> System.out.println(<span class="hljs-string">"s isn't empty, it's: "</span> + s + <span class="hljs-string">"\n"</span>);
+</code></pre>
+<p>Here we show how you can use these methods to check for an empty string. The conditional check could also be replaced with <code>s.isEmpty()</code> and would work just the same.</p>
+<h3 id="findingcharactersandsubstrings">Finding Characters and Substrings</h3>
+<p>Since a <code>String</code> is an immutable sequence of characters, we can ask what character is in what position, or find the position of a character. Indexing of a <code>String</code> starts at 0, like we're used to with arrays.</p>
+<p><code>charAt(int index)</code> returns the character value at a given index.</p>
+<p><code>indexOf()</code> is overloaded, and therefore has multiple uses:</p>
+<ul>
+<li><code>indexOf(int ch)</code> returns the first index position that matches the given character value</li>
+<li><code>indexOf(int ch, int fromIndex)</code> returns the first index that matches the given character value AFTER <code>fromIndex</code></li>
+<li><code>indexOf(String substring)</code> returns the (first) starting position of <code>substring</code> in the <code>String</code> object it was called on</li>
+<li><code>indexOf(String substring, int fromIndex)</code> same as the previous method, but the search begins at <code>fromIndex</code> instead of 0</li>
+</ul>
+<p>All of the overloaded <code>indexOf()</code> methods return <strong>-1</strong> if the index was not found.</p>
+<p><code>lastIndexOf()</code> is also overloaded, and has equivalent method signatures to <code>indexOf()</code>, and also returns -1 if an appropriate index wasn't found. It searches the <code>String</code> object backward unless a <code>fromIndex</code> is specified.</p>
+<p>The index passed to the method has to be within the range <code>[0, example.length() - 1]</code> to be valid. Otherwise, a <code>StringIndexOutOfBoundsException</code> is thrown.</p>
+<pre><code class="hljs">String example = <span class="hljs-string">"This should be complicated enough to show some things we should show"</span>;
+
+<span class="hljs-comment">// Find the characters at the indexes given</span>
+System.out.println(example.charAt(<span class="hljs-number">0</span>));
+System.out.println(example.charAt(<span class="hljs-number">5</span>));
+
+<span class="hljs-comment">// An StringIndexOutOfBoundsException is thrown in both these cases:</span>
+<span class="hljs-comment">// System.out.println(example.charAt(-1));</span>
+<span class="hljs-comment">// System.out.println(example.charAt(200));</span>
+
+<span class="hljs-comment">// Find the index of characters or substrings</span>
+System.out.println(example.indexOf(<span class="hljs-string">'s'</span>)); <span class="hljs-comment">// returns the first occurence of 's'</span>
+System.out.println(example.indexOf(<span class="hljs-string">'s'</span>, <span class="hljs-number">4</span>)); <span class="hljs-comment">// the first 's' after index 4</span>
+System.out.println(example.indexOf(<span class="hljs-string">"should"</span>)); <span class="hljs-comment">// the index of the first "should" in our string</span>
+System.out.println(example.indexOf(<span class="hljs-string">"should"</span>, <span class="hljs-number">15</span>)); <span class="hljs-comment">// the index of the first "should" in our</span>
+                                  <span class="hljs-comment">// string _after_ index 15</span>
+
+<span class="hljs-comment">// Find the last index of characters or substrings</span>
+System.out.println(example.lastIndexOf(<span class="hljs-string">'s'</span>)); <span class="hljs-comment">// returns the first occurence of 's' when we look backwards from the end of the string</span>
+System.out.println(example.lastIndexOf(<span class="hljs-string">'s'</span>, <span class="hljs-number">45</span>)); <span class="hljs-comment">// searches for 's' backwards from the position 45</span>
+System.out.println(example.lastIndexOf(<span class="hljs-string">"should"</span>)); <span class="hljs-comment">// returns the position at which the substring 'should' appears, looking backwards from the end of the string</span>
+System.out.println(example.lastIndexOf(<span class="hljs-string">"should"</span>, <span class="hljs-number">20</span>)); <span class="hljs-comment">// finds substring 'should' from position 20 backwards, and returns the position at which it begins</span>
+</code></pre>
+<p>This will output the following:</p>
+<div id="ad-content-2"><div class=" my-4 flex justify-center" style="min-height:250px"><div id="waldo-tag-3880"></div></div></div><pre><code class="hljs">T
+s
+3
+5
+5
+57
+64
+42
+57
+5
+</code></pre>
+<p><strong>Note</strong>: <code>indexOf(int ch, int fromIndex)</code> is often used in loops, when we want to do something for every occurrence of a character in a <code>String</code>.</p>
+<pre><code class="hljs"><span class="hljs-keyword">int</span> foundAt = -<span class="hljs-number">1</span>;
+String example = <span class="hljs-string">"This should be complicated enough to show some things we should show"</span>;
+<span class="hljs-keyword">while</span> (<span class="hljs-keyword">true</span>) {
+foundAt = example.indexOf(<span class="hljs-string">'s'</span>, foundAt + <span class="hljs-number">1</span>);
+<span class="hljs-keyword">if</span> (foundAt == -<span class="hljs-number">1</span>)
+<span class="hljs-keyword">break</span>;
+<span class="hljs-keyword">else</span> {
+<span class="hljs-comment">// do something with that information</span>
+}
+}
+</code></pre>
+<h3 id="comparingstrings">Comparing Strings</h3>
+<p>The <code>compareTo()</code> method lexicographically compares our <code>String</code> with another. The actual comparison of the two strings is based on the Unicode value of each character in the string. The method returns either a positive number, a negative number, or 0.</p>
+<p>If all characters in our string were all lower case (or all uppercase) letters, the return value of the <code>compareTo()</code> method can be interpreted as "if the return value was negative, my string would come before the other string in a dictionary".</p>
+<p>I emphasize the point that the letters would need to be in the same case, since the function might produce unexpected output otherwise.</p>
+<p>The <code>compareTo()</code> method doesn't go through all the characters in our strings, it returns as soon as it reaches the end of any of the strings, or as soon as it finds a non-matching character. In which case the function returns <em>(Unicode value of the mismatched character in our string) - (Unicode value of the mismatched character in the given string)</em>.</p>
+<blockquote>
+<p>For anyone that's curious - ASCII is a part of Unicode. Which means that a-z and A-Z are in the same order as in ASCII encoding, i.e. they're all one after the other in their respective cases. Namely, <em>a-z</em> are codes between <em>97-122</em> and <em>A-Z</em> is <em>65-90</em>. So the value for 'a' is 97, the value for 'b' is 98 and so on. This way, when we subtract the Unicode value for 'b' from 'a', we get -1. Meaning that 'a' is one letter before 'b', which it is.</p>
+</blockquote>
+<pre><code class="hljs">System.out.println(<span class="hljs-string">"a"</span>.compareTo(<span class="hljs-string">"a"</span>));
+System.out.println(<span class="hljs-string">"a"</span>.compareTo(<span class="hljs-string">"b"</span>));
+System.out.println(<span class="hljs-string">"1"</span>.compareTo(<span class="hljs-string">"12345678"</span>));
+System.out.println(<span class="hljs-string">"2"</span>.compareTo(<span class="hljs-string">"12345678"</span>));
+System.out.println(<span class="hljs-string">"abcd"</span>.compareTo(<span class="hljs-string">"abgggggggggg"</span>));
+</code></pre>
+<pre><code class="hljs">0
+-1
+-7
+1
+-4
+</code></pre>
+<p>On the third line of the code above, in this case <code>compareTo</code> returns the difference in string lengths, since it didn't find a mismatched character before it "ran out" of characters in one string.</p>
+<p>And in the last line we see -4 is printed because of <code>'c' - 'g'</code>, since that's the first mismatch it found, and it doesn't care about the rest.</p>
+<p><strong>Note</strong>: The "unexpected" part when using <code>compareTo()</code> happens when we compare strings with different cases.</p>
+<pre><code class="hljs">System.out.println(<span class="hljs-string">"ORANGE"</span>.compareTo(<span class="hljs-string">"apple"</span>)); 
+</code></pre>
+<p>We might expect the method to return a positive value, since "apple" should come before "ORANGE". However, the Unicode value for 'O' is less than the Unicode value for 'a'.</p>
+<p>This might sometimes be preferred behavior, but in case it isn't - we use <code>compareToIgnoreCase()</code>. That method does essentially the same thing as <code>compareTo()</code>, it just pretends that everything is in the same case, and gives us a "proper" dictionary order.</p>
+<p><strong>Note</strong>: <code>compareTo()</code> and <code>compareToIgnoreCase()</code> are often used when we make a <code>Comparator</code> for a custom class.</p>
+<p>For example, let's say we have a <code>Person</code> object like the following:</p>
+<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Person</span> </span>{
+String firstName;
+String lastName;
+<span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>Now let's say we have an <code>ArrayList</code> called "people" of many <code>Person</code> objects, in no particular order. We'd like to sort that <code>ArrayList</code> so that they are ordered in lexicographical order based on their last name, and if people have the same last name, we'd like to sort them based on their first name.</p>
+<pre><code class="hljs">Comparator&lt;Person&gt; personComparator = <span class="hljs-keyword">new</span> Comparator&lt;Person&gt;() {
+<span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compare</span><span class="hljs-params">(Person p1, Person p2)</span> </span>{
+<span class="hljs-keyword">if</span> (p1.firstName.compareTo(p2.firstName) != <span class="hljs-number">0</span>) {
+<span class="hljs-keyword">return</span> p1.firstName.compareTo(p2.firstName);
+}
+<span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> p1.lastName.compareTo(p2.lastName);
+}
+};
+Collections.sort(people, personComparator);
+</code></pre>
+<h3 id="extractingsubstrings">Extracting Substrings</h3>
+<p>A "substring" is a subset of (or part of) another string. The <code>substring()</code> method returns a new string that is a substring of the string we use the method on.</p>
+<p>In other words, if we wanted a new string containing the first three characters of our string, we'd use <code>ourString.substring(0, 3)</code>.</p>
+<p>The <code>substring()</code> method has two variations:</p>
+<ul>
+<li><code>substring(int startIndex)</code> returns a <code>String</code> containing all the characters from <code>startIndex</code> (inclusive) to the end of our <code>String</code>. It behaves the same as <code>substring(int startIndex, ourString.length())</code>.</li>
+<li><code>substring(int startIndex, int endIndex)</code> returns a <code>String</code> containing all the characters from <code>startIndex</code> (inclusive) to <code>endIndex</code> (exclusive, i.e. the character at <code>endIndex</code> isn't returned)</li>
+</ul>
+<p><strong>Note</strong>: The given indices must still be in the interval <code>[0, ourString.length()-1]</code>. Java, unlike some other languages, does <strong>NOT</strong> support negative indices in the <code>substring()</code> method! Java will throw a <code>StringIndexOutOfBoundsException</code> for any of the following reasons:</p>
+<ul>
+<li><code>startIndex</code> is negative</li>
+<li><code>endIndex</code> is larger than the length of our <code>String</code> object</li>
+<li><code>startIndex</code> is larger than <code>endIndex</code></li>
+</ul>
+<p>Although the documentation doesn't explicitly say that "no negative values are allowed at all" (one might have the habit of giving -1 as the <code>endIndex</code> from other programming languages), that rule can be derived from that fact that <code>startIndex</code> can't be negative, and that <code>endIndex</code> has to be larger than <code>startIndex</code>.</p>
+<p>However, Java just makes us take the extra step of writing <code>ourString.length() - someNumber</code> as <code>endIndex</code> instead of just <code>- someNumber</code>.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"abcdef"</span>;
+System.out.println(ourString.substring(<span class="hljs-number">0</span>,<span class="hljs-number">3</span>));
+System.out.println(ourString.substring(<span class="hljs-number">2</span>));
+System.out.println(ourString.substring(<span class="hljs-number">1</span>,<span class="hljs-number">3</span>));
+
+<span class="hljs-comment">// If we want the last few characters</span>
+System.out.println(ourString.substring(ourString.length()-<span class="hljs-number">3</span>));
+</code></pre>
+<div id="ad-lead-magnet"><div class="mx-auto pt-3 pb-4 mb-4 lg:mb-2 lg:pt-4 lg:pb-5"><div class="bg-gray-100 px-4 py-1 rounded-lg shadow-lg border border-gray-400 md:py-2 md:px-6 lg:py-3 lg:px-8 flex items-center flex-col xl:flex-row"><div class="xl:pt-2 w-1/2 xs:w-full sm:mx-auto"><div class="lazyload-wrapper "><div style="height:300px" class="lazyload-placeholder"></div></div></div><div class="mt-2 w-full sm:max-w-xl xl:mt-0 xl:ml-8 sm:w-2/3 sm:mx-auto"><h2 class="mt-2 mb-1 text-xl leading-4 font-extrabold tracking-tight text-gray-600 sm:text-2xl sm:leading-6 sm:text-center">Free eBook: Git Essentials</h2><p class="mt-3 max-w-3xl text-md leading-6 text-gray-500 sm:text-center">Check out our hands-on, practical guide to learning Git, with best-practices, industry-accepted standards, and included cheat sheet. Stop Googling Git commands and actually <em>learn</em> it!</p><div class="mt-4 flex sm:justify-center sm:mx-auto"><div class="ml-3 xl:inline-flex rounded-md shadow"><button class="inline-flex items-center justify-center px-3 py-1 bg-orange-400 border border-transparent text-base leading-6 font-medium rounded-md hover:bg-orange-500 hover:no-underline focus:outline-none focus:ring transition duration-150 ease-in-out"><span class="inline-flex items-center text-white">Download the eBook<!-- --> &nbsp;<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></span></button></div></div></div></div></div></div><pre><code class="hljs">abc
+cdef
+bc
+def
+</code></pre>
+<h3 id="changingstringcase">Changing String Case</h3>
+<p>These two simple methods are used to change the case of characters within a string.</p>
+<ul>
+<li><code>toLowerCase()</code>: changes all upper case characters to lower case (ignores everything else)</li>
+<li><code>toUpperCase()</code>: changes all lower case characters to upper case (ignores everything else)</li>
+</ul>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"ThInK oF a ClEvEr StRiNg"</span>;
+
+System.out.println(ourString.toLowerCase());
+System.out.println(ourString.toUpperCase());
+System.out.println(ourString);
+</code></pre>
+<p>This will ouptput the following:</p>
+<pre><code class="hljs">think of a clever string
+THINK OF A CLEVER STRING
+ThInK oF a ClEvEr StRiNg
+</code></pre>
+<p>Notice that the initial <code>String</code> object itself is unchanged.</p>
+<h3 id="removingwhitespace">Removing Whitespace</h3>
+<p>This method returns a copy of the initial <code>String</code> object in which any leading and trailing whitespace (spaces, tabs, newlines) is removed.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"      Any non-leading and non-trailing whitespace is  \n  preserved       "</span>;
+System.out.println(ourString.trim());
+</code></pre>
+<p>Output:</p>
+<pre><code class="hljs">Any non-leading and non-trailing whitespace is  
+preserved
+</code></pre>
+<p><code>trim()</code> is often used when processing user input, since it makes sure that we have no useless whitespace and doesn't change the string if we don't.</p>
+<p>A very common use of <code>trim()</code> with user input is checking whether any non-whitespace characters were entered at all:</p>
+<pre><code class="hljs"><span class="hljs-comment">// Usually we check for empty inputs like this:</span>
+<span class="hljs-keyword">if</span> (userinput.isEmpty()) { ... }
+<span class="hljs-comment">// ...or the equivalent</span>
+<span class="hljs-keyword">if</span> (userinput.length() != <span class="hljs-number">0</span>) { ... }
+
+<span class="hljs-comment">// But a better way to check would be this, which</span>
+<span class="hljs-comment">// handles cases where the user entered only</span>
+<span class="hljs-comment">// whitespace (i.e. "    ")</span>
+<span class="hljs-keyword">if</span> (userinput.trim().isEmpty()) { ... }
+</code></pre>
+<h3 id="formattingstrings">Formatting Strings</h3>
+<p>The <code>format()</code> method returns a formatted string with a given format and arguments. It's used to make life simple when formatting complex strings in Java. It works similarly to <code>printf</code> in C:</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">format</span><span class="hljs-params">(String form, Object... args)</span>
+</span></code></pre>
+<p>This method declaration might seem complicated but let's take a closer look at it:</p>
+<ul>
+<li>For our purposes, the <code>static</code> part means that this method is called through the <code>String</code> class, and not through an object of the <code>String</code> class. Meaning that when we want to use this method we'd write <code>String.format(...)</code> and not <code>ourString.format(...)</code>. We <strong>can</strong> call the method the second way, but <code>ourString</code> won't play a part in the method anyway.</li>
+<li>The <code>...</code> (three dots) after <code>Object</code> just says that a variable number of arguments can be passed here. One or two or fifty, it all depends on the <code>String form</code>.</li>
+</ul>
+<p>Let's start with a simple example.</p>
+<pre><code class="hljs"><span class="hljs-keyword">int</span> a = <span class="hljs-number">2</span>;
+<span class="hljs-keyword">int</span> b = <span class="hljs-number">3</span>;
+<span class="hljs-keyword">int</span> c = <span class="hljs-number">4</span>;
+<span class="hljs-keyword">int</span> d = <span class="hljs-number">1</span>;
+
+<span class="hljs-comment">// %d indicates we want to print an integer</span>
+System.out.println(String.format(<span class="hljs-string">"%d"</span>, a));
+</code></pre>
+<pre><code class="hljs">2
+</code></pre>
+<p>The <code>format()</code> method goes through the <code>form</code> string and looks for special characters and replaces them with arguments in <code>args</code>.</p>
+<p>Special characters start with a <code>%</code>. In our example, we used <code>%d</code>, which Java understands as "I'll try and parse the provided argument in <code>args</code> as an integer".</p>
+<p>A slightly more insightful example of when <code>format()</code> is useful:</p>
+<pre><code class="hljs"><span class="hljs-comment">// Very messy, hard to read, and hard to maintain</span>
+System.out.println(<span class="hljs-string">"a = "</span> + a + <span class="hljs-string">"\n"</span> + <span class="hljs-string">"b = "</span> + b + <span class="hljs-string">"\n"</span> + <span class="hljs-string">"c = "</span> + c + <span class="hljs-string">"\n"</span> + <span class="hljs-string">"d = "</span> + d + <span class="hljs-string">"\n"</span>);
+
+<span class="hljs-comment">// Much prettier</span>
+System.out.println(String.format(<span class="hljs-string">"a = %d \nb = %d \nc = %d \nd = %d"</span>, a, b, c, d));
+</code></pre>
+<p>As we can see in this example, Java matches the special characters beginning with <code>%</code> with the arguments in order. Meaning that when it sees the first <code>%d</code> it will match it to <code>a</code>, the second <code>%d</code> to <code>b</code> and so on.</p>
+<p>There are a lot of special characters for <code>format()</code> and you can find the full list in <a rel="nofollow" target="_blank" href="https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html">the docs</a> (including a whole bunch of date/time options), but the ones you'll most commonly see and use are:</p>
+<ul>
+<li><code>%d</code>: integral types (byte, short, int, long, BigInteger)</li>
+<li><code>%s</code>: Strings</li>
+<li><code>%f</code>: for <code>float</code> as a decimal number, <code>%e</code> formatted as a decimal number in computerized scientific notation, and <code>%g</code> prints either the same as <code>%f</code> or <code>%e</code> depending on the precision value after rounding.</li>
+<li><code>%b</code>: for <code>Boolean</code> values. If the value is <code>null</code>, "false" is printed</li>
+</ul>
+<p>Generally speaking, the <code>format()</code> method has a seemingly complicated syntax:</p>
+<pre><code class="hljs">%[argument_index$][flags][width][.precision]conversion
+</code></pre>
+<div id="ad-content-3"><div class=" my-4 flex justify-center" style="min-height:250px"><div id="waldo-tag-3884"></div></div></div><p><code>argument_index</code>, <code>flags</code>, <code>width</code>, and <code>precision</code> are all optional as indicated by <code>[]</code>.</p>
+<p>Precision can mean different things for different data types. For floats/doubles precision has the obvious meaning of "how many digits am I supposed to show after the decimal period". Other than that, precision specifies the maximum number of characters to be written to the output.</p>
+<pre><code class="hljs"><span class="hljs-keyword">double</span> ourDouble = <span class="hljs-number">1123.9303</span>;
+System.out.println(String.format(<span class="hljs-string">"%f"</span>, ourDouble));
+System.out.println(String.format(<span class="hljs-string">"%.3f"</span>, ourDouble)); <span class="hljs-comment">// specifies that we only want 3 digits after decimal point</span>
+System.out.println(String.format(<span class="hljs-string">"%e"</span>, ourDouble));
+
+String ourString  = <span class="hljs-string">"what does precision do with strings?"</span>;
+System.out.println(String.format(<span class="hljs-string">"%.8s"</span>, ourString)); <span class="hljs-comment">// prints the first 8 characters of our string</span>
+
+<span class="hljs-keyword">int</span> ourInt = <span class="hljs-number">123456789</span>;
+<span class="hljs-comment">// System.out.println(String.format("%.4d", ourInt)); // precision can't be used on ints</span>
+</code></pre>
+<p>This will output:</p>
+<pre><code class="hljs">1123.930300
+1123.930
+1.123930e+03
+what doe
+</code></pre>
+<p>The optional <code>width</code> specifies the minimum width of the output.</p>
+<pre><code class="hljs"><span class="hljs-comment">// If our number has less than 6 digits, this will</span>
+<span class="hljs-comment">// add extra 0s to the beginning until it does</span>
+System.out.println(String.format(<span class="hljs-string">"%06d"</span>, <span class="hljs-number">12</span>)); 
+
+<span class="hljs-comment">// If our number has more than 6 digits, it will just print it out</span>
+System.out.println(String.format(<span class="hljs-string">"%06d"</span>, <span class="hljs-number">1234567</span>));
+
+<span class="hljs-comment">// We can specify output width, with the output being aligned</span>
+<span class="hljs-comment">// to the right if it's shorter than the given space. If it's</span>
+<span class="hljs-comment">// longer, everything gets printed. The || are added for</span>
+<span class="hljs-comment">// demonstration purposes only</span>
+System.out.println(String.format(<span class="hljs-string">"|%20d|"</span>, <span class="hljs-number">12</span>));
+<span class="hljs-comment">// Or we can align the output to the left</span>
+System.out.println(String.format(<span class="hljs-string">"|%-20d|"</span>, <span class="hljs-number">12</span>));
+
+<span class="hljs-comment">// We can also easily print an octal/hexadecimal value of an integer</span>
+System.out.println(String.format(<span class="hljs-string">"Octal: %o, Hex: %x"</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>));
+</code></pre>
+<p>Running this code will produce the following:</p>
+<pre><code class="hljs">000012
+1234567
+|                  12|
+|12                  |
+Octal: 12, Hex: a
+</code></pre>
+<h3 id="regexandcheckingforsubstrings">Regex and Checking for Substrings</h3>
+<p><code>contains(CharSequence s)</code> returns <code>true</code> if <code>s</code> is a part of our <code>String</code> object (<code>s</code> can be a <code>String</code> itself or <code>StringBuilder</code> object, or really anything that implements <code>CharSequence</code>), otherwise it returns <code>false</code>.</p>
+<p><code>startsWith(String prefix)</code> returns <code>true</code> if our <code>String</code> object literally starts with the given <code>prefix</code>, otherwise it returns <code>false</code>.</p>
+<p><code>endsWith(String suffix)</code> returns <code>true</code> if our <code>String</code> object literally ends with the given <code>suffix</code>, otherwise it returns <code>false</code>.</p>
+<p><code>matches(String regex)</code> returns <code>true</code> if our entire <code>String</code> matches the given <a rel="nofollow" target="_blank" href="https://en.wikipedia.org/wiki/Regular_expression">regular expression</a>.</p>
+<p>All of these methods are rather straight-forward. Although <code>matches()</code> presumes knowledge of regular expressions.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"This string contains a contains."</span>;
+
+System.out.println(ourString.contains(<span class="hljs-string">"contains"</span>));
+System.out.println(ourString.startsWith(<span class="hljs-string">"T"</span>));
+System.out.println(ourString.endsWith(<span class="hljs-string">":)"</span>));
+System.out.println(ourString.matches(<span class="hljs-string">".*string.*"</span>));
+</code></pre>
+<p>These operations output the following:</p>
+<pre><code class="hljs">true
+true
+false
+true
+</code></pre>
+<h3 id="replacingcharactersandsubstrings">Replacing Characters and Substrings</h3>
+<p><code>replace(char oldChar, char newChar) </code> replaces all occurrences of <code>oldChar</code> with <code>newChar</code>.</p>
+<p><code>replace(CharSequence target, CharSequence replacement)</code> replaces all occurrences of <code>target</code> string with the <code>replacement</code> string (meaning that we can replace entire substrings instead of just characters).</p>
+<p><code>replaceAll(String regex, String replacement)</code> replaces all substrings that match the <code>regex</code> argument with the <code>replacement</code> string.</p>
+<p><code>replaceFirst(String regex, String replacement)</code> replaces only the first substring that matches the <code>regex</code> argument with the <code>replacement</code> string.</p>
+<p>To avoid any confusion, <code>replace()</code> also replaces <strong>ALL</strong> occurrences of a character sequence, even though there's a method named <code>replaceAll()</code>. The difference is that <code>replaceAll()</code> and <code>replaceFirst()</code> use regex to find the character sequences that need to be replaced.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"We really don't like the letter e here"</span>;
+
+System.out.println(ourString.replace(<span class="hljs-string">'e'</span>, <span class="hljs-string">'a'</span>));
+System.out.println(ourString.replace(<span class="hljs-string">"here"</span>, <span class="hljs-string">"there"</span>));
+System.out.println(ourString.replaceAll(<span class="hljs-string">"e(r+)"</span>, <span class="hljs-string">"a"</span>));
+System.out.println(ourString.replaceFirst(<span class="hljs-string">"e(r+)"</span>, <span class="hljs-string">"a"</span>));
+</code></pre>
+<pre><code class="hljs">Wa raally don't lika tha lattar a hara
+We really don't like the letter e there
+We really don't like the letta e hae
+We really don't like the letta e here, only the first occurrence was replaced
+</code></pre>
+<h3 id="splittingandjoiningstrings">Splitting and Joining Strings</h3>
+<p>The methods <code>split()</code> and <code>join()</code> are two sides of the same coin.</p>
+<p><code>split(String regex)</code> splits this string using a given regular expression and returns a character array.</p>
+<p><code>split(String regex, int limit)</code> is similar to the previous method, but only splits a <code>limit</code> number of times.</p>
+<p><code>join(CharSequence delimiter, CharSequence... elements) </code> on the other hand returns a <code>String</code> containing all of the <code>elements</code> we listed, joined by the <code>delimiter</code>.</p>
+<p><code>join(CharSequence delimiter, Iterable&lt;? extends CharSequence&gt; elements)</code> is a very complicated way of saying that we can use <code>join()</code> on things like lists, to combine all the elements into a <code>String</code> using the given <code>delimiter</code>.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"apples, oranges, pears, pineapples"</span>;
+String[] fruits = ourString.split(<span class="hljs-string">","</span>);
+
+System.out.println(Arrays.toString(fruits));
+
+<span class="hljs-comment">// This is a great place to use the aforementioned trim() method</span>
+<span class="hljs-comment">// to remove the space at the beginning of some of the words</span>
+<span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; fruits.length; i++) {
+fruits[i] = fruits[i].trim();
+}
+
+System.out.println(Arrays.toString(fruits)); <span class="hljs-comment">// Arrays.toString() formats the output array on its own</span>
+</code></pre>
+<div id="ad-content-4"><div class=" my-4 flex justify-center" style="min-height:250px"><div id="waldo-tag-10947"></div></div></div><pre><code class="hljs">[apples,  oranges,  pears,  pineapples]
+[apples, oranges, pears, pineapples]
+</code></pre>
+<p>Keep in mind that <code>split()</code> takes a regular expression to decide where to split the string, so be careful when using characters that have a special meaning in regular expressions.</p>
+<p>Since those characters are common (a particular problem is "." since that means "any character" in regex), a safe way of using <code>split()</code> is with <code>Pattern.quote(".")</code> which makes sure that nothing is understood as a special regex character.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"apples.oranges.pears.pineapples"</span>;
+
+<span class="hljs-comment">// This returns then prints an empty array, since every</span>
+<span class="hljs-comment">// character is interpreted as something to be split at</span>
+<span class="hljs-comment">// and ignored</span>
+System.out.println(Arrays.toString(ourString.split(<span class="hljs-string">"."</span>)));
+
+<span class="hljs-comment">// The "regex safe" way of doing this would be</span>
+System.out.println(Arrays.toString(ourString.split(Pattern.quote(<span class="hljs-string">"."</span>))));
+
+<span class="hljs-comment">// Splits our string to two substrings at most,</span>
+<span class="hljs-comment">// completely ignoring all other occurrences of "."</span>
+System.out.println(Arrays.toString(ourString.split(Pattern.quote(<span class="hljs-string">"."</span>), <span class="hljs-number">2</span>))); 
+</code></pre>
+<pre><code class="hljs">[]
+[apples, oranges, pears, pineapples]
+[apples, oranges.pears.pineapples]
+</code></pre>
+<p><code>join()</code> does the exact opposite of <code>split()</code>. We use <code>join()</code> when we have an array/list/etc. of strings (or <code>StringBuilders</code>/<code>StringBuffers</code>) that we want to form into one new <code>String</code> using some (or no) delimiter.</p>
+<pre><code class="hljs"><span class="hljs-comment">// A common use is to avoid repetitive concatenation,</span>
+<span class="hljs-comment">// i.e. "1" + "," + "2" + "," + "3" + "," + "4"</span>
+System.out.println(String.join(<span class="hljs-string">","</span>, <span class="hljs-string">"1"</span>, <span class="hljs-string">"2"</span>, <span class="hljs-string">"3"</span>, <span class="hljs-string">"4"</span>));
+
+<span class="hljs-comment">// We can pass an array or any class that implements</span>
+<span class="hljs-comment">// Iterable (containing character sequences) as the</span>
+<span class="hljs-comment">// second parameter as well</span>
+String arrayOfStrings[] = {<span class="hljs-string">"1"</span>,<span class="hljs-string">"2"</span>,<span class="hljs-string">"3"</span>,<span class="hljs-string">"4"</span>,<span class="hljs-string">"5"</span>};
+
+System.out.println(String.join(<span class="hljs-string">"-"</span>, arrayOfStrings));
+System.out.println(String.join(<span class="hljs-string">"-"</span>, Arrays.asList(arrayOfStrings))); <span class="hljs-comment">// Works just fine with lists as well</span>
+
+<span class="hljs-comment">// Join them with an empty string to convert an array</span>
+<span class="hljs-comment">// of Strings to one single String without any extra data</span>
+System.out.println(String.join(<span class="hljs-string">""</span>, arrayOfStrings));
+</code></pre>
+<pre><code class="hljs">1,2,3,4
+1-2-3-4-5
+1-2-3-4-5
+12345
+</code></pre>
+<h3 id="creatingcharacterarrays">Creating Character Arrays</h3>
+<p>This method converts the <code>String</code> it's used on into a character array. It returns a new character array, containing all the characters (in order) that are in the <code>String</code>.</p>
+<p><code>toCharArray()</code> a straightforward method signature.</p>
+<pre><code class="hljs">String ourString = <span class="hljs-string">"These will all become separate characters"</span>;
+
+System.out.println(Arrays.toString(ourString.toCharArray()));
+</code></pre>
+<p>This will print out the following:</p>
+<pre><code class="hljs">[T, h, e, s, e,  , w, i, l, l,  , a, l, l,  , b, e, c, o, m, e,  , s, e, p, a, r, a, t, e,  , c, h, a, r, a, c, t, e, r, s]
+</code></pre>
+<h3 id="stringequality">String Equality</h3>
+<p><code>equals(Object str)</code> compares two strings, and returns <code>true</code> if the strings contain the same characters in the same order, and <code>false</code> otherwise. The comparison is case-sensitive (use <code>equalsIgnoreCase()</code> for case-insensitive comparison).</p>
+<p>It is important to understand that <code>equals()</code> and <code>==</code> perform two different operations. <code>equals()</code> compares the characters inside a <code>String</code> object, as previously mentioned, while <code>==</code> compares the equality of object references, to see whether they refer to the same instance. While statements such as <code>1 == 1</code> will return true <code>"string" == "string"</code> might not.</p>
+<p>The tricky part here is that the output of <code>==</code> depends on how we've initialized the <code>String</code> objects we're comparing:</p>
+<pre><code class="hljs">String s1 = <span class="hljs-string">"Just a String"</span>;
+String s2 = <span class="hljs-string">"Just a String"</span>;
+
+System.out.println(s1 == s2);
+System.out.println(s1.equals(s2));
+
+s2 = <span class="hljs-keyword">new</span> String(<span class="hljs-string">"Just a String"</span>);
+System.out.println(s1 == s2);
+System.out.println(s1.equals(s2));
+</code></pre>
+<pre><code class="hljs">true
+true
+false
+true
+</code></pre>
+<p><code>equals()</code> returns <code>true</code> in both cases. So you should always use <code>equals()</code> unless you actually want to see whether two reference variables reference the same instance, though this is pretty rare.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>It is important to understand the nuances of Strings and String methods in Java. Subtle, hard to find bugs can occur with things like <code>split()</code> and regex specific special characters, or by mistakenly using <code>==</code> when we meant to use <code>equals()</code>.</p>
+<p>It's best to always look at how a method works, test them out for yourself so that you remember things you need to look out for. Besides, knowing what methods you have at your disposals saves you the unnecessary work of implementing already available methods by yourself.</p>
+</body>
+</html>
